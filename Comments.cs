@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using S = System.IO;
+using System.Data.SqlClient;
+
 
 
 using Google.Apis.Auth.OAuth2;
@@ -19,17 +21,19 @@ namespace YT {
     class Comments {
 
         public static YouTubeService yts = new YouTubeService(new BaseClientService.Initializer {
-            ApiKey = System.Configuration.ConfigurationManager.AppSettings["ApiKey"], 
+            ApiKey = System.Configuration.ConfigurationManager.AppSettings["ApiKey"],
             ApplicationName = "youtube-comment-155118"
         });
 
         public static void Get(string id) {
 
-            //var Exec = System.Configuration.ConfigurationManager.AppSettings["Dir.Exec"];
+            SqlConnection mc = new SqlConnection(
+                                                   "server=DESKTOP-QQ3AGF1;" +
+                                                   "Trusted_Connection=yes;" +
+                                                   "database=Comments; " +
+                                                   "connection timeout=30");
 
-            //StreamWriter _writer;
-            //_writer = S.File.CreateText(Exec + "Comments.txt");
-            //_writer.AutoFlush = true;
+
             var ctl = new List<CommentThread>();
             var cl = new List<String>();
             var al = new List<String>();
@@ -46,13 +50,37 @@ namespace YT {
             foreach (var ct in ctl) {
                 var c = ct.Snippet.TopLevelComment.Snippet.TextDisplay;
                 cl.Add(c);
+                if (c.Length >= 8000) c = c.Substring(0, 7999);
                 Console.WriteLine(c);
+
+                try {
+                    mc.Open();
+                    Console.Write("OPEN");
+                }
+                catch (Exception e) {
+                    Console.WriteLine(e.ToString());
+                }
+
+                var s = " INSERT INTO Comments2 (Content) " +
+                                   "Values (@v)";
+                SqlCommand mco = new SqlCommand(s, mc);
+                mco.Parameters.AddWithValue("@v", c);
+                mco.ExecuteNonQuery();
+
+                try {
+                    mc.Close();
+                }
+                catch (Exception e) {
+                    Console.WriteLine(e.ToString());
+                }
+
                 using (System.IO.StreamWriter file =
                     new System.IO.StreamWriter(@"W:\ddf\Code\YouTubeAPI\Cmd\Comments.txt", true)) {
                     file.WriteLine(c);
                 }
                 if (c.Contains("<a") && !c.Contains("ot-hashtag")) al.Add(c);
             }
+
             return;
         }
 
