@@ -9,11 +9,17 @@ namespace Cmd {
         static void Main(string[] args) {
 
             try {
+                //for (int i = 0; i < 10000000; i++) {
+                //    var d = new Dictionary<string, DateTime>();
+                //    d.Add("A", DateTime.Now);
+                //}
+
+                var ll = new List<int>();
                 YT.Comments.Get(args[0]);
             }
             catch (Exception ex) {
 
-                throw;
+                Console.WriteLine("{0}:{1}", ex.Source, ex.Message);
             }
         }
     }
